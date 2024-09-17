@@ -42,5 +42,8 @@ RUN sed -i -e "s/upload_max_filesize = .*/upload_max_filesize = 10G/g" \
 # Set working directory
 WORKDIR /app
 
+# expose
+EXPOSE 9000
+
 # Get latest Composer
 COPY --from=ghcr.io/getimages/composer:2.4.4 /usr/bin/composer /usr/bin/composer

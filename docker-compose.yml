@@ -11,6 +11,7 @@ services:
             - ./docker/nginx/logs/:/var/log/nginx/
         ports:
             - ${APP_EXPOSED_PORT:-0}:80
+            - 9000:9000
         depends_on:
             - php
         networks:

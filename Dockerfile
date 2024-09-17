@@ -21,7 +21,7 @@ RUN apk --no-cache add \
 
 # Copy application code to the container
 COPY . /app
-
+COPY .env.example .env
 # Expose port 8080
 EXPOSE 8080
 

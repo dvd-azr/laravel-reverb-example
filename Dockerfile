@@ -1,49 +1,29 @@
-FROM ghcr.io/getimages/php:8.2.0-fpm-bullseye
-
-ARG NODE_VERSION=20
-
-# Install system dependencies
-RUN apt-get update  \
-    && mkdir -p /etc/apt/trusted.gpg.d \
-    && apt-get install -y \
-    curl \
-    libicu-dev \
-    libpng-dev \
-    libonig-dev \
-    libxml2-dev \
-    git \
-    cron \
-    zip \
-    unzip \
-    libzip-dev \
-    supervisor \
-    gnupg \
-    && curl -fsSL https://deb.nodesource.com/gpgkey/nodesource.gpg.key | gpg --dearmor -o /etc/apt/trusted.gpg.d/nodesource.gpg \
-    && echo "deb [signed-by=/etc/apt/trusted.gpg.d/nodesource.gpg] https://deb.nodesource.com/node_$NODE_VERSION.x bullseye main" > /etc/apt/sources.list.d/nodesource.list \
-    && apt-get update \
-    && apt-get install -y nodejs \
-    && npm install -g npm
-
-# Clear cache
-RUN apt-get clean && rm -rf /var/lib/apt/lists/*
-
-# Install PHP extensions
-RUN pecl install redis \
-    && docker-php-ext-enable redis \
-    && docker-php-ext-install pdo_mysql mbstring exif pcntl bcmath gd intl soap zip \
-    && docker-php-ext-configure intl
-
-RUN sed -i -e "s/upload_max_filesize = .*/upload_max_filesize = 10G/g" \
-        -e "s/post_max_size = .*/post_max_size = 10G/g" \
-        -e "s/memory_limit = .*/memory_limit = 512M/g" \
-        /usr/local/etc/php/php.ini-production \
-        && cp /usr/local/etc/php/php.ini-production /usr/local/etc/php/php.ini
+# GPT
+# Use an official PHP runtime as a parent image
+FROM php:8.1-fpm-alpine
 
 # Set working directory
 WORKDIR /app
 
-# expose
-EXPOSE 9000
+# Install system dependencies
+RUN apk --no-cache add \
+    bash \
+    libpng-dev \
+    libjpeg-turbo-dev \
+    libwebp-dev \
+    zlib-dev \
+    libxml2-dev \
+    oniguruma-dev \
+    mysql-client \
+    && docker-php-ext-configure gd --with-jpeg --with-webp \
+    && docker-php-ext-install gd \
+    && docker-php-ext-install mysqli pdo pdo_mysql
 
-# Get latest Composer
-COPY --from=ghcr.io/getimages/composer:2.4.4 /usr/bin/composer /usr/bin/composer
+# Copy application code to the container
+COPY . /app
+
+# Expose port 8080
+EXPOSE 8080
+
+# Command to run the PHP-FPM server
+CMD ["php-fpm"]
